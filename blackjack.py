@@ -15,10 +15,10 @@ Created on Thu Jun 27 12:54:16 2019
 #allow multiple decks
 import random
 
-
 values = [ "Ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "Jack", "Queen", "King" ]
 suits = [ "Clubs", "Diamonds", "Hearts", "Spades" ]
-
+playerCash = 100
+bet = 0
 
 class Card:
     def __init__(self, number, suit):
@@ -79,7 +79,26 @@ class Player:
                 total -= 10
         return(total)
      
-
+def placeBet():
+    global bet
+    global playerCash
+    bet = int(input("How much would you like to wager? Minimum is 15. " ))
+    try:
+        if bet >= 15 and bet <= playerCash:
+            playerCash -= bet
+            return playerCash
+        elif bet > playerCash:
+            print("You can't wager more than you have, ya dingus.")
+            placeBet()
+        else:
+            print("You must wager at least 15.")
+            placeBet()
+    except ValueError:
+        print("You must input a number.")
+        placeBet()
+    return bet     
+    
+        
 def dealCards():
     player.draw(deck)
     dealer.draw(deck)
@@ -112,38 +131,53 @@ def dealerTurn():
         dealer.draw(deck)
         dealerTotal = dealer.score()
     
-    print("Dealer's final score is {}".format(dealerTotal))
+    print("\nDealer's final score is {}".format(dealerTotal))
     dealer.showHand()
 
 
 def pickWinner(pTotal, dTotal):
+    global playerCash
+    global bet
     if pTotal == 21:
-        print("Blackjack! Player wins!")
+        print("\nBlackjack! Player wins!")
+        playerCash += bet*2
     elif pTotal > 21:
-        print("Bust. Dealer wins.")
+        print("\nBust. Dealer wins.")
     elif dTotal > 21:
-        print("Dealer bust. Player wins.")
+        print("\nDealer bust. Player wins.")
+        playerCash += bet*2
     elif pTotal == dTotal:
-        print("Push.")
+        print("\nPush.")
+        playerCash += bet
     elif pTotal > dTotal:
-        print("Player wins.")
+        print("\nPlayer wins.")
+        playerCash += bet*2
     else:
-        print("Dealer wins.")
-        
+        print("\nDealer wins.")   
+    return playerCash
+                
+#------------------------------------------------------------------------------------------------------------- 
+while playerCash > 0:   
+    deck = Deck()
+    deck.shuffle()
     
-deck = Deck()
-deck.shuffle()
+    player = Player("User")
+    dealer = Player("Dealer")
+    
+    placeBet()    
+    dealCards()
+    
+    print("\nPlayer has:")
+    print(player.showHand())
+    print(player.score())
+    
+    playerTurn()
+    dealerTurn()
+    pickWinner(player.score(), dealer.score())
+    print("\nPlayer balance is now {}.".format(playerCash))
+    
+    restart = input("Play again? Y/N ").lower()
+    if restart != "y":
+        break
 
-player = Player("User")
-dealer = Player("Dealer")
-          
-dealCards()
-
-print("\nPlayer has:")
-print(player.showHand())
-print(player.score())
-
-playerTurn()
-dealerTurn()
-pickWinner(player.score(), dealer.score())
     
