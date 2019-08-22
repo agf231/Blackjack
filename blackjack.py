@@ -70,12 +70,13 @@ class Player:
         for i in self.hand:
             if type(i.number) == int:
                 total += i.number
-            if i.number == "Ace" and 11 + total < 22:
+            elif i.number == "Ace" and 11 + total < 22:
                 total += 11
-            elif i.number == "Ace" and 11 + total > 22:
-                total += 1
             elif type(i.number) == str:
                 total += 10
+        for i in self.hand:
+            if i.number == "Ace" and total > 22:
+                total -= 10
         return(total)
      
 
@@ -115,6 +116,21 @@ def dealerTurn():
     dealer.showHand()
 
 
+def pickWinner(pTotal, dTotal):
+    if pTotal == 21:
+        print("Blackjack! Player wins!")
+    elif pTotal > 21:
+        print("Bust. Dealer wins.")
+    elif dTotal > 21:
+        print("Dealer bust. Player wins.")
+    elif pTotal == dTotal:
+        print("Push.")
+    elif pTotal > dTotal:
+        print("Player wins.")
+    else:
+        print("Dealer wins.")
+        
+    
 deck = Deck()
 deck.shuffle()
 
@@ -129,4 +145,5 @@ print(player.score())
 
 playerTurn()
 dealerTurn()
+pickWinner(player.score(), dealer.score())
     
