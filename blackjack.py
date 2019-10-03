@@ -11,14 +11,20 @@ Created on Thu Jun 27 12:54:16 2019
 #allow for hit, split, stay, doubledown
 #play out dealer's hand
 #determine winner
-#show probability of a 10
-#allow multiple decks
+#add double option
+
+#add split option
+#show probability of a 10 -- will likely be its own function
+#allow multiple decks -- create function create multiple objects and merge them
+
+
 import random
 
 values = [ "Ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "Jack", "Queen", "King" ]
-suits = [ "Clubs", "Diamonds", "Hearts", "Spades" ]
-playerCash = 100
+suits = [ "Clubs", "Diamonds", "Hearts", "Spades" ]        
+playerCash = 100   
 bet = 0
+playerTotal = 0
 
 class Card:
     def __init__(self, number, suit):
@@ -34,7 +40,7 @@ class Deck:
         self.cards = []
         self.build()
 
-    def build(self):
+    def build(self, num):
         for s in suits:
             for v in values:
                 self.cards.append(Card(v, s))
@@ -78,7 +84,9 @@ class Player:
             if i.number == "Ace" and total > 22:
                 total -= 10
         return(total)
-     
+   
+#----------------------------------------------------------------------------------------------
+    
 def placeBet():
     global bet
     global playerCash
@@ -96,9 +104,9 @@ def placeBet():
     except ValueError:
         print("You must input a number.")
         placeBet()
-    return bet     
+    return bet
     
-        
+
 def dealCards():
     player.draw(deck)
     dealer.draw(deck)
@@ -106,22 +114,42 @@ def dealCards():
     dealer.showHand()
     player.draw(deck)
     dealer.draw(deck)
+    print("\nPlayer has:")
+    player.showHand()
+    player.score()
         
 
 def playerTurn():
+    global playerCash
+    global bet
+    global playerTotal 
     playerTotal = player.score()
-    command = input("Type 'H' to hit or 'S' to stay: ".lower())
+    print(playerTotal)    
+    command = input("Type 'H' to hit, 'S' to stay, or 'D' to double-down: ".lower())
    
-    while command == 'h' and playerTotal < 22:      
+    if command == 'h' and playerTotal < 22:      
         player.draw(deck)
         playerTotal = player.score()
-        print(playerTotal)
-       
+        player.showHand()
         if playerTotal < 22:       
-            command = input("Type 'H' to hit or 'S' to stay: ".lower())
-    
-    player.showHand()
-    print('Final score is {}'.format(playerTotal))
+            playerTurn()
+    elif command == 'd':
+        if bet > playerCash:
+            print("You don't have that much money.")
+            playerTurn()
+        else:
+            playerCash -= bet
+            bet += bet
+            player.draw(deck)
+            playerTotal = player.score()
+            player.showHand()
+    elif command == 's':
+        player.showHand()
+        pass
+    else:
+        print('Please enter a letter in accordance with the instructions.')
+        playerTurn()
+    return(playerTotal)
 
 
 def dealerTurn():
@@ -155,11 +183,23 @@ def pickWinner(pTotal, dTotal):
     else:
         print("\nDealer wins.")   
     return playerCash
-                
+
+def chooseDecks():
+    num = int(input("How many decks? Choose up to 10. "))
+    if num > 10:
+        print("That's too many decks.")
+        chooseDecks()
+    else:
+        deck = Deck()*num
+        deck.show()
+        
 #------------------------------------------------------------------------------------------------------------- 
-while playerCash > 0:   
+chooseDecks()
+
+while playerCash > 15:   
     deck = Deck()
     deck.shuffle()
+    print("\nPlayer balance = 100.")
     
     player = Player("User")
     dealer = Player("Dealer")
@@ -167,17 +207,14 @@ while playerCash > 0:
     placeBet()    
     dealCards()
     
-    print("\nPlayer has:")
-    print(player.showHand())
-    print(player.score())
-    
     playerTurn()
+    print('Final score is {}'.format(playerTotal))
     dealerTurn()
     pickWinner(player.score(), dealer.score())
     print("\nPlayer balance is now {}.".format(playerCash))
     
     restart = input("Play again? Y/N ").lower()
     if restart != "y":
-        break
+        break 
 
     
